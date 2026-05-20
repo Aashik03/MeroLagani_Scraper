@@ -24,7 +24,8 @@ def create_table():
                 ltp float,
                 change_pct float,
                 volume float,
-                scraped_at timestamp
+                scraped_at timestamp,
+                unique(symbol,scraped_at)
                 );
 
                 create table if not exists nepse_top_gainers(
@@ -32,7 +33,8 @@ def create_table():
                 symbol varchar(20),
                 ltp float,
                 change_pct float,
-                scraped_at timestamp
+                scraped_at timestamp,
+                unique(symbol,scraped_at)
                 );
 
                 create table if not exists nepse_top_losers(
@@ -40,7 +42,8 @@ def create_table():
                 symbol varchar(20),
                 ltp float,
                 change_pct float,
-                scraped_at timestamp    
+                scraped_at timestamp,
+                unique(symbol,scraped_at)
                 );
                 """)
     conn.commit()
@@ -56,13 +59,13 @@ def load_data(df,table):
         if table=="nepse_LiveMarket":
             cur.execute("""
                         insert into nepse_LiveMarket(symbol,ltp,change_pct,volume,scraped_at)
-                        values(%s,%s,%s,%s,%s)
+                        values(%s,%s,%s,%s,%s) on conflict (symbol,scraped_at) do nothing
                         """,(row['symbol'],row['ltp'],row['change_pct'],row['volume'],row['scraped_at'])    
                         )
         else:
             cur.execute(f"""
                         insert into {table} (symbol,ltp,change_pct,scraped_at)
-                        values(%s,%s,%s,%s)
+                        values(%s,%s,%s,%s) on conflict (symbol,scraped_at) do nothing
                         """,(row['symbol'],row['ltp'],row['change_pct'],row['scraped_at']))
             
         inserted+=1
